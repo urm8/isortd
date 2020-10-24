@@ -1,5 +1,4 @@
 import logging
-import sys
 from concurrent import futures
 from typing import Mapping
 
@@ -57,7 +56,6 @@ class Handler:
         out = api.sort_code_string(in_, config=config)
         if out:
             return web.Response(text=out, content_type=request.content_type, charset=request.charset)
-        print(out)
         return web.Response(status=201)
 
     def _parse(self, headers: Mapping) -> settings.Config:
