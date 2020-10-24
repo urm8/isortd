@@ -1,0 +1,10 @@
+README.rst
+setup.py
+isortd/__init__.py
+isortd/__main__.py
+isortd/main.py
+isortd.egg-info/PKG-INFO
+isortd.egg-info/SOURCES.txt
+isortd.egg-info/dependency_links.txt
+isortd.egg-info/requires.txt
+isortd.egg-info/top_level.txt
