@@ -26,36 +26,36 @@ def factory(executor: futures.ProcessPoolExecutor) -> web.Application:
     app = web.Application()
     cors = aiohttp_cors.setup(app)
     handler = Handler(executor)
-
     sort_resource = cors.add(app.router.add_resource("/"))
-
     cors.add(
         sort_resource.add_route("POST", handler.handle),
         {
-            "*": aiohttp_cors.ResourceOptions(expose_headers="*",
-                                              allow_headers=('Content-Type', 'X-*')),
-        })
+            "*": aiohttp_cors.ResourceOptions(
+                expose_headers="*", allow_headers=("Content-Type", "X-*")
+            ),
+        },
+    )
 
     ping_resource = cors.add(app.router.add_resource("/ping"))
-
     cors.add(
         ping_resource.add_route("GET", pong),
         {
-            "*": aiohttp_cors.ResourceOptions(allow_methods=["GET"],
-                                              allow_credentials=True,
-                                              expose_headers="*",
-                                              allow_headers="*"),
-        }
+            "*": aiohttp_cors.ResourceOptions(
+                allow_methods=["GET"],
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers="*",
+            ),
+        },
     )
     return app
 
 
 async def pong(*_):
-    return web.Response(text=f'pong', status=200)
+    return web.Response(text=f"pong", status=200)
 
 
 class Handler:
-
     def __init__(self, executor: futures.ProcessPoolExecutor):
         self.executor = executor
 
@@ -64,12 +64,20 @@ class Handler:
         config = self._parse(request.headers)
         out = api.sort_code_string(in_, config=config)
         if out:
-            return web.Response(text=out, content_type=request.content_type, charset=request.charset)
+            return web.Response(
+                text=out, content_type=request.content_type, charset=request.charset
+            )
         return web.Response(status=201)
 
     def _parse(self, headers: Mapping) -> settings.Config:
         import json
+
         print(json.dumps({**(headers or {})}, indent=4, ensure_ascii=False))
         cfg = settings.Config(
-            **{key.lower().replace('x-', ''): value for key, value in headers.items() if key.startswith("X-")})
+            **{
+                key.lower().replace("x-", ""): value
+                for key, value in headers.items()
+                if key.startswith("X-")
+            }
+        )
         return cfg
