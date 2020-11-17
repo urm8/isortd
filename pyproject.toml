@@ -19,6 +19,9 @@ black = "^20.8b1"
 [tool.isort]
 profile = "black"
 line_length = 120
+
+
+[tool.black]
 target-version = ['py37']
 include = '\.pyi?$'
 exclude = '''

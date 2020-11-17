@@ -6,6 +6,7 @@ import aiohttp_cors
 import click
 from aiohttp import web
 from isort import api, settings
+from isort.exceptions import ISortError, ProfileDoesNotExist
 
 from isortd import __version__ as ver
 
@@ -61,7 +62,10 @@ class Handler:
 
     async def handle(self, request: web.Request):
         in_ = await request.text()
-        config = self._parse(request.headers)
+        try:
+            config = self._parse(request.headers)
+        except ISortError as e:
+            return web.Response(f'Failed to parse config: {e}', status=400)
         out = api.sort_code_string(in_, config=config)
         if out:
             return web.Response(
@@ -71,7 +75,6 @@ class Handler:
 
     def _parse(self, headers: Mapping) -> settings.Config:
         import json
-
         print(json.dumps({**(headers or {})}, indent=4, ensure_ascii=False))
         cfg = settings.Config(
             **{
