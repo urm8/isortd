@@ -19,6 +19,8 @@ black = "^20.8b1"
 [tool.isort]
 profile = "black"
 line_length = 120
+known_third_party="aiohttp,click,isort"
+known_first_party="isortd"
 
 
 [tool.black]

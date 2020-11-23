@@ -1,3 +1,4 @@
+import base64
 import logging
 from concurrent import futures
 from typing import Mapping
@@ -65,7 +66,7 @@ class Handler:
         try:
             config = self._parse(request.headers)
         except ISortError as e:
-            return web.Response(f'Failed to parse config: {e}', status=400)
+            return web.Response(f"Failed to parse config: {e}", status=400)
         out = api.sort_code_string(in_, config=config)
         if out:
             return web.Response(
@@ -74,13 +75,10 @@ class Handler:
         return web.Response(status=201)
 
     def _parse(self, headers: Mapping) -> settings.Config:
-        import json
-        print(json.dumps({**(headers or {})}, indent=4, ensure_ascii=False))
-        cfg = settings.Config(
-            **{
-                key.lower().replace("x-", ""): value
-                for key, value in headers.items()
-                if key.startswith("X-")
-            }
-        )
+        parsed_kv = {
+            key.lower().replace("x-", ""): value
+            for key, value in headers.items()
+            if key.startswith("X-")
+        }
+        cfg = settings.Config(**parsed_kv)
         return cfg
