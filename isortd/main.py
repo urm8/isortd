@@ -7,7 +7,7 @@ from typing import Any, Dict, Mapping, Tuple
 import aiohttp_cors
 import click
 from aiohttp import web
-from isort import api, settings
+from isort import code, settings
 from isort.exceptions import ISortError
 
 from isortd import __version__ as ver
@@ -69,7 +69,7 @@ class Handler:
             cfg = self._get_config(args)
         except ISortError as e:
             return web.Response(body=f"Failed to parse config: {e}", status=400)
-        out = api.sort_code_string(in_, config=cfg)
+        out = code(code=in_, config=cfg)
         if out:
             return web.Response(
                 text=out, content_type=request.content_type, charset=request.charset
@@ -90,6 +90,6 @@ class Handler:
     @lru_cache()
     def _get_config(self, args: Tuple[str, ...]):
         with tempfile.NamedTemporaryFile('w', suffix='.toml', delete=False) as tmp:
-            tmp.write('\n'.join(('[tool.poetry]', *args)))
+            tmp.write('\n'.join(('[tool.isort]', *args)))
             file_path = tmp.name
         return settings.Config(settings_file=file_path)
