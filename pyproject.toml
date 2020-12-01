@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "isortd"
-version = "0.1.1"
+version = "0.1.2"
 description = "isort daemon. Http api to isort"
 authors = ["mm <megafukz@gmail.com>"]
 homepage = "https://github.com/urm8/isortd"
