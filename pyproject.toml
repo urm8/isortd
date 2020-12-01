@@ -1,8 +1,24 @@
 [tool.poetry]
 name = "isortd"
-version = "0.1.0"
-description = ""
+version = "0.1.2"
+description = "isort daemon. Http api to isort"
 authors = ["mm <megafukz@gmail.com>"]
+homepage = "https://github.com/urm8/isortd"
+license = "WTFPL"
+readme = "README.md"
+repository = "https://github.com/urm8/isortd"
+keywords = ["import", "sort"]
+classifiers = [
+    "Environment :: Console",
+    "Framework :: Flake8",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Documentation",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Quality Assurance",
+]
+include = [
+    "LICENSE",
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"
@@ -19,6 +35,11 @@ black = "^20.8b1"
 [tool.isort]
 profile = "black"
 line_length = 120
+known_third_party="aiohttp,click,isort"
+known_first_party="isortd"
+
+
+[tool.black]
 target-version = ['py37']
 include = '\.pyi?$'
 exclude = '''

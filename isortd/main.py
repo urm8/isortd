@@ -1,12 +1,14 @@
 import logging
+import tempfile
 from concurrent import futures
-from typing import Mapping
+from functools import lru_cache
+from typing import Any, Dict, Mapping, Tuple
 
 import aiohttp_cors
 import click
 from aiohttp import web
-from isort import api, settings
-
+from isort import code, settings
+from isort.exceptions import ISortError
 from isortd import __version__ as ver
 
 
@@ -61,23 +63,32 @@ class Handler:
 
     async def handle(self, request: web.Request):
         in_ = await request.text()
-        config = self._parse(request.headers)
-        out = api.sort_code_string(in_, config=config)
+        try:
+            args = self._parse_arguments(request.headers)
+            cfg = self._get_config(args)
+        except ISortError as e:
+            return web.Response(body=f"Failed to parse config: {e}", status=400)
+        out = code(code=in_, config=cfg)
         if out:
             return web.Response(
                 text=out, content_type=request.content_type, charset=request.charset
             )
         return web.Response(status=201)
 
-    def _parse(self, headers: Mapping) -> settings.Config:
-        import json
+    def _parse_arguments(self, headers: Mapping) -> Tuple[str, ...]:
+        normalized = tuple(sorted(f'{self._map_to_arv(key)}={value}'
+                                  for key, value in headers.items()
+                                  if key.startswith("X-")))
+        return normalized
 
-        print(json.dumps({**(headers or {})}, indent=4, ensure_ascii=False))
-        cfg = settings.Config(
-            **{
-                key.lower().replace("x-", ""): value
-                for key, value in headers.items()
-                if key.startswith("X-")
-            }
-        )
-        return cfg
+    @staticmethod
+    def _map_to_arv(key: str):
+        double_dash_key = key.lower().replace("x-", "")
+        return double_dash_key
+
+    @lru_cache()
+    def _get_config(self, args: Tuple[str, ...]):
+        with tempfile.NamedTemporaryFile('w', suffix='.toml', delete=False) as tmp:
+            tmp.write('\n'.join(('[tool.isort]', *args)))
+            file_path = tmp.name
+        return settings.Config(settings_file=file_path)
