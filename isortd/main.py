@@ -1,14 +1,19 @@
+from __future__ import annotations
+
 import logging
 import tempfile
 from concurrent import futures
 from functools import lru_cache
-from typing import Any, Dict, Mapping, Tuple
+from pathlib import Path
+from typing import Mapping
 
 import aiohttp_cors
 import click
 from aiohttp import web
-from isort import code, settings
+from isort import code
+from isort import settings
 from isort.exceptions import ISortError
+
 from isortd import __version__ as ver
 
 
@@ -64,18 +69,20 @@ class Handler:
     async def handle(self, request: web.Request):
         in_ = await request.text()
         try:
+            fp = request.headers.get('XX-PATH')
+            src = tuple(request.headers.get('XX-SRC', '').split(','))
             args = self._parse_arguments(request.headers)
-            cfg = self._get_config(args)
+            cfg = self._get_config(args, src)
         except ISortError as e:
             return web.Response(body=f"Failed to parse config: {e}", status=400)
-        out = code(code=in_, config=cfg)
+        out = code(code=in_, config=cfg, file_path=Path(fp) if fp else None, disregard_skip=True)
         if out:
             return web.Response(
                 text=out, content_type=request.content_type, charset=request.charset
             )
         return web.Response(status=201)
 
-    def _parse_arguments(self, headers: Mapping) -> Tuple[str, ...]:
+    def _parse_arguments(self, headers: Mapping) -> tuple[str, ...]:
         normalized = tuple(sorted(f'{self._map_to_arv(key)}={value}'
                                   for key, value in headers.items()
                                   if key.startswith("X-")))
@@ -87,8 +94,11 @@ class Handler:
         return double_dash_key
 
     @lru_cache()
-    def _get_config(self, args: Tuple[str, ...]):
+    def _get_config(self, args: tuple[str, ...], src: list[str]):
         with tempfile.NamedTemporaryFile('w', suffix='.toml', delete=False) as tmp:
             tmp.write('\n'.join(('[tool.isort]', *args)))
             file_path = tmp.name
-        return settings.Config(settings_file=file_path)
+        kwargs = {}
+        if src:
+            kwargs['src_paths'] = src
+        return settings.Config(settings_file=file_path, **kwargs)
