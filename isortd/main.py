@@ -10,8 +10,7 @@ from typing import Mapping
 import aiohttp_cors
 import click
 from aiohttp import web
-from isort import code
-from isort import settings
+from isort import code, settings
 from isort.exceptions import ISortError
 
 from isortd import __version__ as ver
