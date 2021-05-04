@@ -68,13 +68,18 @@ class Handler:
     async def handle(self, request: web.Request):
         in_ = await request.text()
         try:
-            fp = request.headers.get('XX-PATH')
-            src = tuple(request.headers.get('XX-SRC', '').split(','))
+            fp = request.headers.get("XX-PATH")
+            src = tuple(request.headers.get("XX-SRC", "").split(","))
             args = self._parse_arguments(request.headers)
             cfg = self._get_config(args, src)
         except ISortError as e:
             return web.Response(body=f"Failed to parse config: {e}", status=400)
-        out = code(code=in_, config=cfg, file_path=Path(fp) if fp else None, disregard_skip=True)
+        out = code(
+            code=in_,
+            config=cfg,
+            file_path=Path(fp) if fp else None,
+            disregard_skip=True,
+        )
         if out:
             return web.Response(
                 text=out, content_type=request.content_type, charset=request.charset
@@ -82,9 +87,13 @@ class Handler:
         return web.Response(status=201)
 
     def _parse_arguments(self, headers: Mapping) -> tuple[str, ...]:
-        normalized = tuple(sorted(f'{self._map_to_arv(key)}={value}'
-                                  for key, value in headers.items()
-                                  if key.startswith("X-")))
+        normalized = tuple(
+            sorted(
+                f"{self._map_to_arv(key)}={value}"
+                for key, value in headers.items()
+                if key.startswith("X-")
+            )
+        )
         return normalized
 
     @staticmethod
@@ -94,10 +103,10 @@ class Handler:
 
     @lru_cache()
     def _get_config(self, args: tuple[str, ...], src: list[str]):
-        with tempfile.NamedTemporaryFile('w', suffix='.toml', delete=False) as tmp:
-            tmp.write('\n'.join(('[tool.isort]', *args)))
+        with tempfile.NamedTemporaryFile("w", suffix=".toml", delete=False) as tmp:
+            tmp.write("\n".join(("[tool.isort]", *args)))
             file_path = tmp.name
         kwargs = {}
         if src:
-            kwargs['src_paths'] = src
+            kwargs["src_paths"] = src
         return settings.Config(settings_file=file_path, **kwargs)
