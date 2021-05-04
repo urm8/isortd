@@ -1,4 +1,4 @@
-FROM pypy:latest
+FROM pypy:slim
 ENV PYTHONUNBUFFERED 1
 RUN pypy -m pip install isortd
 EXPOSE 47393
