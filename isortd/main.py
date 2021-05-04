@@ -10,6 +10,7 @@ from typing import Mapping
 import aiohttp_cors
 import click
 from aiohttp import web
+from isort import __version__ as isort_ver
 from isort import code, settings
 from isort.exceptions import ISortError
 
@@ -23,7 +24,9 @@ def main(host, port):
     logging.basicConfig(level=logging.INFO)
     with futures.ProcessPoolExecutor() as executor:
         app = factory(executor)
-        app.logger.info(f"isortd version {ver} listening on {host} port {port}")
+        app.logger.info(
+            f"isortd v{ver} (isort core v{isort_ver}) listening on {host} port {port}"
+        )
         web.run_app(app, host=host, port=port, handle_signals=True) or 0
     return 0
 
