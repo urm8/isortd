@@ -1,4 +1,4 @@
-FROM ${SOURCE_IMAGE:-pypy:latest}
+FROM pypy:latest
 ENV PYTHONUNBUFFERED 1
 RUN pypy -m pip install isortd
 EXPOSE 47393
