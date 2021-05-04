@@ -17,3 +17,4 @@ $ python -m isortd
 
 ## todo
     - socket support
+    - pypi ci
