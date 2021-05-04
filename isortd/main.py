@@ -92,7 +92,7 @@ class Handler:
     def _parse_arguments(self, headers: Mapping) -> tuple[str, ...]:
         normalized = tuple(
             sorted(
-                f"{self._map_to_arv(key)}={value}"
+                f"{self._map_to_arg(key)}={value}"
                 for key, value in headers.items()
                 if key.startswith("X-")
             )
@@ -100,9 +100,8 @@ class Handler:
         return normalized
 
     @staticmethod
-    def _map_to_arv(key: str):
-        double_dash_key = key.lower().replace("x-", "")
-        return double_dash_key
+    def _map_to_arg(key: str):
+        return key.lower().replace("x-", "")
 
     @lru_cache()
     def _get_config(self, args: tuple[str, ...], src: list[str]):
