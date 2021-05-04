@@ -5,7 +5,7 @@ import tempfile
 from concurrent import futures
 from functools import lru_cache
 from pathlib import Path
-from typing import Mapping
+from typing import Iterable
 
 import aiohttp_cors
 import click
@@ -31,13 +31,19 @@ def main(host, port):
 def factory(executor: futures.ProcessPoolExecutor) -> web.Application:
     app = web.Application()
     cors = aiohttp_cors.setup(app)
-    handler = Handler(executor)
+    handler = HttpHandler(executor)
     sort_resource = cors.add(app.router.add_resource("/"))
     cors.add(
         sort_resource.add_route("POST", handler.handle),
         {
             "*": aiohttp_cors.ResourceOptions(
-                expose_headers="*", allow_headers=("Content-Type", "X-*")
+                expose_headers="*",
+                allow_headers=(
+                    "Content-Type",
+                    "Accept-Encoding",
+                    "Content-Encoding",
+                    "X-*",
+                ),
             ),
         },
     )
@@ -61,43 +67,57 @@ async def pong(*_):
     return web.Response(text=f"pong", status=200)
 
 
-class Handler:
+class HttpHandler:
     def __init__(self, executor: futures.ProcessPoolExecutor):
         self.executor = executor
 
     async def handle(self, request: web.Request):
         in_ = await request.text()
         try:
-            fp = request.headers.get('XX-PATH')
-            src = tuple(request.headers.get('XX-SRC', '').split(','))
-            args = self._parse_arguments(request.headers)
-            cfg = self._get_config(args, src)
+            fp = request.headers.get("XX-PATH")
+            src = tuple(request.headers.get("XX-SRC", "").split(","))
+            args = _parse_arguments(request.headers.items())
+            cfg = _get_config(args, src)
         except ISortError as e:
             return web.Response(body=f"Failed to parse config: {e}", status=400)
-        out = code(code=in_, config=cfg, file_path=Path(fp) if fp else None, disregard_skip=True)
+        out = code(code=in_, config=cfg, file_path=Path(fp) if fp else None)
         if out:
             return web.Response(
-                text=out, content_type=request.content_type, charset=request.charset
+                text=out,
+                content_type=request.content_type,
+                charset=request.charset,
+                zlib_executor_size=1024,
             )
         return web.Response(status=201)
 
-    def _parse_arguments(self, headers: Mapping) -> tuple[str, ...]:
-        normalized = tuple(sorted(f'{self._map_to_arv(key)}={value}'
-                                  for key, value in headers.items()
-                                  if key.startswith("X-")))
-        return normalized
 
-    @staticmethod
-    def _map_to_arv(key: str):
-        double_dash_key = key.lower().replace("x-", "")
-        return double_dash_key
+def _parse_arguments(headers: Iterable[tuple[str, str]]) -> tuple[str, ...]:
+    normalized = tuple(
+        sorted(
+            f"{_normalize_headers(key)}={value}"
+            for key, value in headers
+            if key.startswith("X-")
+        )
+    )
+    return normalized
 
-    @lru_cache()
-    def _get_config(self, args: tuple[str, ...], src: list[str]):
-        with tempfile.NamedTemporaryFile('w', suffix='.toml', delete=False) as tmp:
-            tmp.write('\n'.join(('[tool.isort]', *args)))
-            file_path = tmp.name
-        kwargs = {}
-        if src:
-            kwargs['src_paths'] = src
-        return settings.Config(settings_file=file_path, **kwargs)
+
+def _normalize_headers(key: str):
+    double_dash_key = key.lower().replace("x-", "")
+    return double_dash_key
+
+
+@lru_cache
+def _get_config(args: tuple[str, ...], src: list[str]):
+    file_path = _write_temp_config(args)
+    kwargs = {}
+    if src:
+        kwargs["src_paths"] = src
+    return settings.Config(settings_file=file_path, **kwargs)
+
+
+def _write_temp_config(args):
+    with tempfile.NamedTemporaryFile("w", suffix=".toml", delete=False) as tmp:
+        tmp.write("\n".join(("[tool.isort]", *args)))
+        file_path = tmp.name
+    return file_path

@@ -21,8 +21,8 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.7"
-isort = "^5.6.4"
+python = ">=3.6.1,<4.0"
+isort = "^5"
 aiohttp = "^3.7.0"
 click = "^7.1.2"
 aiohttp_cors = "^0.7.0"
@@ -31,6 +31,7 @@ aiohttp-cors = "^0.7.0"
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 black = "^20.8b1"
+pre-commit = "^2.12.1"
 
 [tool.isort]
 profile = "black"
@@ -63,3 +64,9 @@ exclude = '''
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.autopep8]
+max_line_length = 120
+in-place = true
+recursive = true
+aggressive = 3

@@ -9,3 +9,6 @@ Mb I'll release [IsortConnect](https://github.com/urm8/IsortConnect) and it will
 $ pip install isortd
 $ python -m isortd
 ``` 
+
+## todo
+    - socket support
