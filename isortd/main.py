@@ -103,10 +103,12 @@ class Handler:
 
     @lru_cache()
     def _get_config(self, args: tuple[str, ...], src: list[str]):
-        with tempfile.NamedTemporaryFile("w", suffix=".toml", delete=False) as tmp:
-            tmp.write("\n".join(("[tool.isort]", *args)))
-            file_path = tmp.name
         kwargs = {}
+        if args:
+            with tempfile.NamedTemporaryFile("w", suffix=".toml", delete=False) as tmp:
+                tmp.write("\n".join(("[tool.isort]", *args)))
+                file_path = tmp.name
+            kwargs["settings_file"] = file_path
         if src:
             kwargs["src_paths"] = src
-        return settings.Config(settings_file=file_path, **kwargs)
+        return settings.Config(**kwargs)
