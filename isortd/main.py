@@ -103,17 +103,17 @@ def _parse_arguments(headers: Iterable[tuple[str, str]]) -> tuple[str, ...]:
 
 
 def _normalize_headers(key: str):
-    double_dash_key = key.lower().replace("x-", "")
-    return double_dash_key
+    return key.lower().replace("x-", "")
 
 
 @lru_cache
 def _get_config(args: tuple[str, ...], src: list[str]):
-    file_path = _write_temp_config(args)
     kwargs = {}
+    if args:
+        kwargs["settings_file"] = _write_temp_config(args)
     if src:
         kwargs["src_paths"] = src
-    return settings.Config(settings_file=file_path, **kwargs)
+    return settings.Config(**kwargs)
 
 
 def _write_temp_config(args):
