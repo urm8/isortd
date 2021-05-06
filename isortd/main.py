@@ -10,6 +10,7 @@ from typing import Iterable
 import aiohttp_cors
 import click
 from aiohttp import web
+from isort import __version__ as isort_ver
 from isort import code, settings
 from isort.exceptions import ISortError
 
@@ -23,7 +24,7 @@ def main(host, port):
     logging.basicConfig(level=logging.INFO)
     with futures.ProcessPoolExecutor() as executor:
         app = factory(executor)
-        app.logger.info(f"isortd version {ver} istening on {host} port {port}")
+        app.logger.info(f"isortd v{ver} (isort core v{isort_ver}) listening on {host} port {port}")
         web.run_app(app, host=host, port=port, handle_signals=True) or 0
     return 0
 
@@ -103,17 +104,17 @@ def _parse_arguments(headers: Iterable[tuple[str, str]]) -> tuple[str, ...]:
 
 
 def _normalize_headers(key: str):
-    double_dash_key = key.lower().replace("x-", "")
-    return double_dash_key
+    return key.lower().replace("x-", "")
 
 
 @lru_cache
 def _get_config(args: tuple[str, ...], src: list[str]):
-    file_path = _write_temp_config(args)
     kwargs = {}
+    if args:
+        kwargs["settings_file"] = _write_temp_config(args)
     if src:
         kwargs["src_paths"] = src
-    return settings.Config(settings_file=file_path, **kwargs)
+    return settings.Config(**kwargs)
 
 
 def _write_temp_config(args):
