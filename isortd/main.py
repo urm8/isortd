@@ -107,7 +107,7 @@ def _normalize_headers(key: str):
     return key.lower().replace("x-", "")
 
 
-@lru_cache
+@lru_cache(maxsize=128)
 def _get_config(args: tuple[str, ...], src: list[str]):
     kwargs = {}
     if args:
