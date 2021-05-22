@@ -14,20 +14,26 @@ release [IsortConnect](https://github.com/urm8/IsortConnect) and it will be more
 ## install
 
 ```
-$ pip install isortd
-$ python -m isortd
-``` 
+poetry add isortd
+```
+
+or
+
+```
+python -m pip install --upgrade isortd
+```
 
 ## usage
 
-I'd suggest you to run this [docker image](https://hub.docker.com/repository/docker/urm8/isortd) with smth like:
+I'd suggest you to run this [docker image](https://hub.docker.com/repository/docker/urm8/isortd) with something like:
 
 ```
 docker run -d --name isortd --publish "47393:47393" urm8/isortd:latest
 ```
 
 or just add it to your local docker-compose file \_0_/
+
 ## todo
 
 * socket support
-* pypi ci
+* some kind of filechangelistener daemon runnable from directory
