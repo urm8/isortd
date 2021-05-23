@@ -27,6 +27,9 @@ aiohttp = "^3.7.0"
 click = "^7.1.2"
 aiohttp_cors = "^0.7.0"
 aiohttp-cors = "^0.7.0"
+watchgod = "^0.7"
+loguru = "^0.5.3"
+aiofile = "^3.5.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

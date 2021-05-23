@@ -1,6 +1,6 @@
 import sys
 
-from isortd.main import main
+from isortd.http import main
 
 if __name__ == "__main__":
     sys.exit(main())
